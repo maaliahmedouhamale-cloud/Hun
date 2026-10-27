@@ -1,0 +1,740 @@
+‎hun-online.html‎
+رقم سطر الملف الأصلي	رقم السطر المختلف	تغيير خط التفاضل
+@@ -0,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f97316">
+<title>هون - Hun</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--o:#f97316;--bg:#f5f6fa;--green:#15803d;--red:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,Tahoma,sans-serif;color:#202735}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0}
+.app{max-width:500px;min-height:100vh;margin:auto;padding-bottom:78px}
+header{background:linear-gradient(135deg,#f97316,#ea580c);color:white;padding:22px;border-radius:0 0 24px 24px}
+.brand{font-size:28px;font-weight:bold}
+.brand small{display:block;font-size:12px;margin-top:5px}
+main{padding:14px}
+.page{display:none}
+.page.active{display:block}
+h2{font-size:19px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.card,.item,.panel{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:13px;margin-bottom:10px}
+.label{color:#737987;font-size:12px;margin-bottom:7px}
+.number{font-size:21px;font-weight:bold;overflow-wrap:anywhere}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.btn{background:var(--o);color:white;padding:11px 13px;border-radius:10px;font-weight:bold}
+.light{background:white;color:#222;border:1px solid #ddd}
+.green{background:var(--green);color:white}
+.red{background:var(--red);color:white}
+.small{padding:8px 10px;font-size:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;margin-bottom:6px;color:#666}
+.field input,.field select{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:9px;background:white}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.muted{font-size:12px;color:#737987;line-height:1.7;margin-top:6px}
+.money{font-weight:bold;color:#ea580c}
+.status{font-size:11px;padding:5px 9px;border-radius:20px;background:#dcfce7;color:var(--green)}
+.stopped{background:#fee2e2;color:var(--red)}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(500px,100%);display:grid;grid-template-columns:repeat(4,1fr);background:white;border-top:1px solid #ddd;padding:8px 0;z-index:100}
+.bottom button{background:white;color:#777;padding:7px 1px;font-size:12px}
+.bottom button.active{color:var(--o);font-weight:bold}
+.bottom span{display:block;font-size:20px;margin-bottom:4px}
+.notice{background:#fff7ed;padding:10px;border-radius:10px;font-size:12px;line-height:1.7;margin:10px 0}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:500;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:white;border-radius:20px 20px 0 0;padding:18px;width:min(500px,100%);max-height:92vh;overflow:auto}
+.close{background:#eee;border-radius:50%;padding:7px 12px}
+#map{height:300px;border-radius:12px;z-index:1}
+.suggestions{border:1px solid #ddd;border-radius:10px;margin-top:4px;max-height:140px;overflow:auto;background:white}
+.suggestions button{display:block;width:100%;padding:10px;text-align:right;background:white;border-bottom:1px solid #eee}
+.suggestions button:hover{background:#fff7ed}
+.toast{display:none;position:fixed;top:15px;left:5%;width:90%;background:#222;color:white;padding:12px;border-radius:10px;z-index:9999;text-align:center}
+/* شاشة تسجيل الدخول */
+#loginGate{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  background:#f5f6fa;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+}
+.login-box{
+  width:100%;
+  max-width:380px;
+  background:white;
+  border-radius:18px;
+  padding:25px;
+  text-align:center;
+  box-shadow:0 8px 35px #0001;
+}
+.login-box h2{color:#ea580c}
+.login-box input{
+  width:100%;
+  padding:13px;
+  margin:12px 0;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  direction:ltr;
+  text-align:center;
+}
+#loginError{
+  color:#dc2626;
+  font-size:13px;
+  margin-top:10px;
+}
+@media(min-width:501px){.bottom{bottom:12px;border-radius:15px}}
+</style>
+</head>
+<body>
+<!-- شاشة الدخول -->
+<div id="loginGate">
+  <div class="login-box">
+    <div style="font-size:42px">🔐</div>
+    <h2>هون | Hun</h2>
+    <p id="loginMessage">أدخل رمز الدخول للمتابعة</p>
+    <form id="loginForm">
+      <input id="loginCode" type="password"
+        placeholder="البريد الإلكتروني"
+        autocomplete="off" required>
+      <button class="btn" style="width:100%" type="submit">
+        دخول إلى التطبيق
+      </button>
+    </form>
+    <div id="loginError"></div>
+  </div>
+</div>
+<div class="app">
+<header>
+  <div class="brand">هون | Hun
+    <small>إدارة مشاوير التوصيل · الأوقية MRU</small>
+  </div>
+</header>
+<main>
+<section id="home" class="page active">
+  <h2>ملخص اليوم</h2>
+  <div class="grid">
+    <div class="card"><div class="label">المشاوير المكتملة</div><div class="number" id="todayTrips">0</div></div>
+    <div class="card"><div class="label">عمولة الشركة</div><div class="number" id="todayFee">0</div><small>MRU</small></div>
+    <div class="card"><div class="label">أجور التوصيل</div><div class="number" id="todayFare">0</div><small>MRU</small></div>
+    <div class="card"><div class="label">المشاوير الجارية</div><div class="number" id="ongoingCount">0</div></div>
+  </div>
+  <div class="quick">
+    <button class="btn" onclick="newTrip()">＋ مشوار جديد</button>
+    <button class="btn light" onclick="newCaptain()">＋ كابتن جديد</button>
+  </div>
+  <h2>حصيلة الشهر</h2>
+  <div class="grid">
+    <div class="card"><div class="label">المشاوير المكتملة</div><div class="number" id="monthTrips">0</div></div>
+    <div class="card"><div class="label">مجموع الأجور</div><div class="number" id="monthFare">0</div><small>MRU</small></div>
+    <div class="card" style="grid-column:1/-1"><div class="label">عمولات الشركة</div><div class="number" id="monthFee">0 MRU</div></div>
+  </div>
+  <h2>آخر المشاوير</h2>
+  <div id="recent"></div>
+</section>
+<section id="trips" class="page">
+  <div class="row"><h2>المشاوير</h2><button class="btn" onclick="newTrip()">＋ جديد</button></div>
+  <div class="actions">
+    <button class="btn small" onclick="tripFilter='ongoing';render()">قيد التنفيذ</button>
+    <button class="btn light small" onclick="tripFilter='completed';render()">المكتملة</button>
+  </div>
+  <div id="tripList"></div>
+</section>
+<section id="captains" class="page">
+  <div class="row"><h2>إدارة الكباتن</h2><button class="btn" onclick="newCaptain()">＋ إضافة</button></div>
+  <div class="notice">إذا أصبح الرصيد سالبًا، تتغير حالة الكابتن إلى موقوف تلقائيًا.</div>
+  <div id="captainList"></div>
+</section>
+<section id="reports" class="page">
+  <h2>التقارير المالية</h2>
+  <div class="grid">
+    <div class="card"><div class="label">عمولات اليوم</div><div class="number" id="reportToday">0</div><small>MRU</small></div>
+    <div class="card"><div class="label">إجمالي العمولات</div><div class="number" id="reportAll">0</div><small>MRU</small></div>
+  </div>
+  <h3>المشاوير المكتملة</h3>
+  <div class="notice">تختفي المشاوير المكتملة من قائمة المشاوير الجارية، لكنها تبقى محفوظة هنا للرجوع إليها.</div>
+  <div id="completedTripsReport"></div>
+  <h3>عمليات الخصم الأخيرة</h3>
+  <div id="deductions"></div>
+  <div class="actions">
+    <button class="btn light" onclick="backup()">تصدير نسخة احتياطية</button>
+    <button class="btn light" onclick="$('importFile').click()">استيراد نسخة</button>
+    <input hidden id="importFile" type="file" accept=".json" onchange="restore(event)">
+    <button class="btn red" onclick="clearAll()">مسح البيانات</button>
+  </div>
+</section>
+</main>
+<nav class="bottom">
+  <button class="active" onclick="page('home',this)"><span>⌂</span>الرئيسية</button>
+  <button onclick="page('trips',this)"><span>🛵</span>المشاوير</button>
+  <button onclick="page('captains',this)"><span>👤</span>الكباتن</button>
+  <button onclick="page('reports',this)"><span>▤</span>التقارير</button>
+</nav>
+</div>
+<div class="modal" id="captainModal">
+  <div class="sheet">
+    <div class="row"><h2>تسجيل كابتن</h2><button class="close" onclick="closeModal('captainModal')">×</button></div>
+    <form id="captainForm">
+      <div class="field"><label>اسم الكابتن</label><input id="capName" required></div>
+      <div class="field"><label>رقم الهاتف</label><input id="capPhone" required inputmode="tel"></div>
+      <div class="field"><label>رقم الدراجة</label><input id="capPlate" required></div>
+      <div class="field"><label>الرصيد المبدئي MRU</label><input id="capBalance" type="number" value="0" step=".01" required></div>
+      <button class="btn" style="width:100%">حفظ الكابتن</button>
+    </form>
+  </div>
+</div>
+<div class="modal" id="tripModal">
+  <div class="sheet">
+    <div class="row"><h2>إنشاء مشوار</h2><button class="close" onclick="closeModal('tripModal')">×</button></div>
+    <form id="tripForm">
+      <div class="field">
+        <label>ابحث عن الكابتن بالاسم</label>
+        <input id="captainSearch" autocomplete="off" placeholder="اكتب أول حرف أو أكثر..." required>
+        <div id="captainSuggestions" class="suggestions" style="display:none"></div>
+        <div class="muted" id="selectedCaptain">لم يتم اختيار كابتن</div>
+        <input type="hidden" id="tripCaptain" required>
+      </div>
+      <div class="field"><label>اسم العميل (اختياري)</label><input id="customer"></div>
+      <div class="field"><label>هاتف العميل (اختياري)</label><input id="customerPhone" inputmode="tel"></div>
+      <div class="field"><label>عنوان الانطلاق</label><input id="pickupText" required placeholder="مثال: تفرغ زينة، نواكشوط"></div>
+      <div class="field"><label>عنوان الوجهة</label><input id="dropText" required placeholder="اكتب عنوان الوجهة"></div>
+      <button type="button" class="btn light" style="width:100%" id="routeButton" onclick="calculateRoute()">📍 احسب المسار والسعر واعرضه على الخريطة</button>
+      <div class="notice">اكتب عنوان الانطلاق والوجهة ثم اضغط زر حساب المسار. يلزم الإنترنت. إذا لم يتعرف النظام على العنوان، استخدم تحديد النقطتين من الخريطة.</div>
+      <div id="map"></div>
+      <p class="muted" id="routeStatus">لم يتم حساب المسار بعد.</p>
+      <div class="grid">
+        <div class="card"><div class="label">مسافة الطريق</div><div class="number" id="kmPreview">—</div><small>كم</small></div>
+        <div class="card"><div class="label">سعر المشوار</div><div class="number" id="farePreview">—</div><small>MRU</small></div>
+        <div class="card" style="grid-column:1/-1"><div class="label">عمولة الشركة 10%</div><div class="number" id="feePreview">— MRU</div></div>
+      </div>
+      <button type="button" class="btn light" onclick="enableMapPick()">أو حدد الانطلاق والوجهة بالنقر على الخريطة</button>
+      <button class="btn" style="width:100%;margin-top:10px">حفظ المشوار</button>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div id="deliveryConfirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:99999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;color:#222;border-radius:16px;padding:20px;width:100%;max-width:360px;box-shadow:0 12px 40px #0004;text-align:center">
+    <h3 style="margin:0 0 12px">تأكيد إتمام المشوار</h3>
+    <p id="deliveryConfirmText" style="line-height:1.8;margin:0 0 18px">هل تريد تأكيد التوصيل وخصم العمولة؟</p>
+    <div style="display:flex;gap:10px">
+      <button type="button" class="btn light" style="flex:1" onclick="closeDeliveryConfirm()">إلغاء</button>
+      <button type="button" class="btn green" style="flex:1" onclick="confirmCompleteTrip()">نعم، تأكيد</button>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===========================
+   تسجيل الدخول عبر Supabase
+   =========================== */
+const SUPABASE_URL = 'https://neymtuxaltkgceujxymz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_t5F_dseoLq6OxjbCTNkGKw_t3yJ25l6';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+let currentProfile = null;
+let remoteReady = false;
+$('loginMessage').textContent = 'سجّل الدخول بالبريد الإلكتروني وكلمة المرور';
+$('loginCode').type = 'email';
+$('loginCode').id = 'loginEmail';
+$('loginEmail').placeholder = 'البريد الإلكتروني';
+$('loginEmail').autocomplete = 'username';
+const pass = document.createElement('input');
+pass.id = 'loginPassword';
+pass.type = 'password';
+pass.placeholder = 'كلمة المرور';
+pass.autocomplete = 'current-password';
+pass.required = true;
+$('loginEmail').parentNode.insertBefore(pass, $('loginEmail').nextSibling);
+$('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const error = $('loginError');
+  error.textContent = 'جارٍ تسجيل الدخول...';
+  const {data: authData, error: authError} = await supabaseClient.auth.signInWithPassword({
+    email: $('loginEmail').value.trim(),
+    password: $('loginPassword').value
+  });
+  if(authError){
+    error.textContent = 'تعذر الدخول: تحقق من البريد وكلمة المرور.';
+    return;
+  }
+  currentUser = authData.user;
+  await startOnlineApp();
+});
+async function signOutHun(){
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  currentProfile = null;
+  remoteReady = false;
+  $('loginGate').style.display = 'flex';
+  $('loginError').textContent = 'تم تسجيل الخروج.';
+}
+/* ===========================
+   تطبيق هون
+   =========================== */
+const KEY='hun_app_data_v2';
+let data=loadData(),tripFilter='ongoing',map=null,pickup=null,dropoff=null,m1=null,m2=null,routeLine=null,routeKm=0,pickStep=0,selectedCaptainId='';
+function normalizeRole(p){
+  return String(p?.role || '').toLowerCase();
+}
+async function startOnlineApp(){
+  $('loginError').textContent = 'تم تسجيل الدخول، جارٍ تحميل البيانات...';
+  const {data: profileRow, error: profileError} = await supabaseClient
+    .from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+  if(profileError){
+    $('loginError').textContent = 'تعذر قراءة الملف الشخصي. راجع سياسات RLS في profiles.';
+    return;
+  }
+  currentProfile = profileRow || {};
+  const role = normalizeRole(currentProfile);
+  if(!['admin','captain','customer'].includes(role)){
+    $('loginError').textContent = 'حسابك لا يحتوي على دور معروف في profiles (admin/captain/customer).';
+    return;
+  }
+  try {
+    const [caps, trips, events] = await Promise.all([
+      supabaseClient.from('captains').select('*'),
+      supabaseClient.from('trips').select('*').order('created_at', {ascending:false}),
+      supabaseClient.from('trip_events').select('*').order('created_at', {ascending:false}).limit(300)
+    ]);
+    const failed = [caps,trips,events].find(x=>x.error);
+    if(failed) throw failed.error;
+    data.captains = (caps.data||[]).map(c=>({
+      id:c.id, userId:c.user_id, name:c.full_name||'', phone:c.phone||'',
+      plate:c.motorcycle_number||'', balance:Number(c.balance)||0,
+      active:c.active !== false, createdAt:c.created_at
+    }));
+    data.trips = (trips.data||[]).map(t=>({
+      id:t.id, tripNumber:t.trip_number, customer:t.receiver_name||'',
+      customerPhone:t.receiver_phone||'', captainId:t.captain_id||'',
+      pickup:t.pickup_address||'', dropoff:t.destination_address||'',
+      pickupPoint:(t.pickup_lat!=null && t.pickup_lng!=null)?{lat:Number(t.pickup_lat),lng:Number(t.pickup_lng)}:null,
+      dropoffPoint:(t.destination_lat!=null && t.destination_lng!=null)?{lat:Number(t.destination_lat),lng:Number(t.destination_lng)}:null,
+      packageType:t.package_type||'', km:Number(t.distance_km)||0,
+      fare:Number(t.fare)||0, commission:Number(t.commission)||0,
+      status:({pending:'ongoing',published:'ongoing',accepted:'ongoing',in_progress:'ongoing',delivered:'completed',completed:'completed',cancelled:'cancelled'})[String(t.status||'').toLowerCase()]||'ongoing',
+      createdAt:t.created_at||t.created_up, completedAt:null, rawStatus:t.status
+    }));
+    data.deductions = (events.data||[]).filter(e=>String(e.event_type||'').toLowerCase().includes('commission')).map(e=>({
+      id:e.id, tripId:e.trip_id, captainId:e.actor_id, amount:Number(e.details?.amount)||0, createdAt:e.created_at
+    }));
+    remoteReady = true;
+    $('loginGate').style.display = 'none';
+    render();
+    toast('تم الاتصال بقاعدة البيانات');
+  } catch(err) {
+    remoteReady = false;
+    $('loginError').textContent = 'تم تسجيل الدخول لكن تعذر تحميل الجداول. تحقق من أسماء الأعمدة وسياسات RLS.';
+  }
+}
+async function syncCaptain(c){
+  const row={id:c.id,user_id:c.userId||null,phone:c.phone,full_name:c.name,motorcycle_number:c.plate,active:c.active!==false,balance:c.balance,created_at:c.createdAt||new Date().toISOString()};
+  const {error}=await supabaseClient.from('captains').upsert(row,{onConflict:'id'});
+  if(error) throw error;
+}
+async function syncTrip(t){
+  const row={
+    id:t.id,customer_id:currentUser?.id||null,captain_id:t.captainId||null,
+    pickup_address:t.pickup,destination_address:t.dropoff,
+    pickup_lat:t.pickupPoint?.lat??null,pickup_lng:t.pickupPoint?.lng??null,
+    destination_lat:t.dropoffPoint?.lat??null,destination_lng:t.dropoffPoint?.lng??null,
+    receiver_name:t.customer||'',receiver_phone:t.customerPhone||'',package_type:t.packageType||'',
+    distance_km:t.km,fare:t.fare,commission:t.commission,
+    status:t.status==='completed'?'completed':t.status==='cancelled'?'cancelled':t.captainId?'accepted':'pending',
+    created_at:t.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()
+  };
+  const {error}=await supabaseClient.from('trips').upsert(row,{onConflict:'id'});
+  if(error) throw error;
+}
+async function persistOnline(){
+  if(!remoteReady) return;
+  try{
+    await Promise.all(data.captains.map(syncCaptain));
+    await Promise.all(data.trips.map(syncTrip));
+  }catch(err){
+    console.error('Hun sync error:',err);
+    const msg='فشل الحفظ في Supabase: '+(err?.message||err?.details||'خطأ غير معروف');
+    toast(msg);
+    alert(msg+'\n\nانسخ نص الرسالة وأرسله لي حتى أصلح السبب بدقة.');
+  }
+}
+function loadData(){
+  try{
+    let d=JSON.parse(localStorage.getItem(KEY));
+    if(d&&Array.isArray(d.captains)&&Array.isArray(d.trips)&&Array.isArray(d.deductions))return d;
+  }catch(e){}
+  return{captains:[],trips:[],deductions:[]};
+}
+function $(x){return document.getElementById(x)}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render();persistOnline()}
+function uid(){return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}
+function money(n){return(Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})}
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dateKey(d){
+  let x=new Date(d);
+  return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();
+}
+function today(){return dateKey(new Date())}
+function sameMonth(d){
+  let x=new Date(d),n=new Date();
+  return x.getMonth()===n.getMonth()&&x.getFullYear()===n.getFullYear();
+}
+function stamp(d){return new Date(d).toLocaleString('ar-MR',{dateStyle:'short',timeStyle:'short'})}
+function fee(f){return Math.round(f*10)/100}
+function price(k){
+  k=Number(k);
+  return !(k>0)?0:(k<=10?100:100+Math.ceil((k-10)/2)*10);
+}
+function active(c){return Number(c.balance)>=0}
+function captain(id){return data.captains.find(c=>c.id===id)}
+function toast(s){
+  $('toast').textContent=s;
+  $('toast').classList.add('show');
+  setTimeout(()=>$('toast').classList.remove('show'),2800);
+}
+function page(n,b){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===n));
+  document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));
+  if(b)b.classList.add('active');
+  render();
+}
+function openModal(id){$(id).classList.add('show')}
+function closeModal(id){$(id).classList.remove('show')}
+function newCaptain(){
+  $('captainForm').reset();
+  $('capBalance').value=0;
+  openModal('captainModal');
+}
+$('captainForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  data.captains.push({
+    id:uid(),
+    name:$('capName').value.trim(),
+    phone:$('capPhone').value.trim(),
+    plate:$('capPlate').value.trim(),
+    balance:Number($('capBalance').value)||0,
+    createdAt:new Date().toISOString()
+  });
+  save();
+  closeModal('captainModal');
+  toast('تم تسجيل الكابتن');
+});
+function newTrip(){
+  $('tripForm').reset();
+  selectedCaptainId='';
+  $('tripCaptain').value='';
+  $('selectedCaptain').textContent='لم يتم اختيار كابتن';
+  $('captainSuggestions').style.display='none';
+  pickup=null;dropoff=null;routeKm=0;pickStep=0;
+  clearRoute();
+  $('kmPreview').textContent='—';
+  $('farePreview').textContent='—';
+  $('feePreview').textContent='—';
+  $('routeStatus').textContent='اكتب العنوانين ثم احسب المسار.';
+  openModal('tripModal');
+  setTimeout(initMap,200);
+}
+$('captainSearch').addEventListener('input',()=>{
+  selectedCaptainId='';
+  $('tripCaptain').value='';
+  $('selectedCaptain').textContent='';
+  let q=$('captainSearch').value.trim().toLowerCase();
+  let box=$('captainSuggestions');
+  if(!q){box.style.display='none';return}
+  let arr=data.captains.filter(c=>active(c)&&c.name.toLowerCase().startsWith(q));
+  box.innerHTML=arr.map(c=>`<button type="button" onclick="selectCaptain('${c.id}')">${esc(c.name)} · ${esc(c.phone)} · دراجة ${esc(c.plate)}</button>`).join('')||'<div class="muted" style="padding:10px">لا يوجد كابتن يبدأ بهذا الاسم</div>';
+  box.style.display='block';
+});
+function selectCaptain(id){
+  let c=captain(id);
+  if(!c)return;
+  selectedCaptainId=id;
+  $('tripCaptain').value=id;
+  $('captainSearch').value=c.name;
+  $('selectedCaptain').textContent=`تم اختيار ${c.name} · ${c.phone} · دراجة ${c.plate}`;
+  $('captainSuggestions').style.display='none';
+}
+$('tripForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  let c=captain($('tripCaptain').value);
+  if(c && !active(c)){toast('هذا الكابتن متوقف بسبب الرصيد');return}
+  if(!pickup||!dropoff||!(routeKm>0)){toast('احسب المسار أولاً حتى يظهر السعر الصحيح');return}
+  let f=price(routeKm);
+  data.trips.unshift({
+    id:uid(),
+    captainId:c?.id||'',
+    customer:$('customer').value.trim(),
+    customerPhone:$('customerPhone').value.trim(),
+    pickup:$('pickupText').value.trim(),
+    dropoff:$('dropText').value.trim(),
+    pickupPoint:pickup,
+    dropoffPoint:dropoff,
+    km:routeKm,
+    fare:f,
+    commission:fee(f),
+    status:'ongoing',
+    createdAt:new Date().toISOString(),
+    completedAt:null
+  });
+  save();
+  closeModal('tripModal');
+  page('trips',document.querySelectorAll('.bottom button')[1]);
+  toast('تم إنشاء المشوار');
+});
+let pendingDeliveryTripId=null;
+function completeTrip(id){
+  const t=data.trips.find(x=>x.id===id);
+  if(!t||t.status!=='ongoing')return;
+  const c=captain(t.captainId);
+  if(!c){toast('لا يوجد كابتن معيّن لهذا المشوار');return;}
+  pendingDeliveryTripId=id;
+  $('deliveryConfirmText').textContent=`هل تؤكد توصيل المشوار وخصم ${money(t.commission)} MRU من رصيد الكابتن ${c.name}؟`;
+  $('deliveryConfirm').style.display='flex';
+}
+function closeDeliveryConfirm(){
+  $('deliveryConfirm').style.display='none';
+  pendingDeliveryTripId=null;
+}
+async function confirmCompleteTrip(){
+  const t=data.trips.find(x=>x.id===pendingDeliveryTripId);
+  if(!t){closeDeliveryConfirm();toast('لم يتم العثور على المشوار');return;}
+  if(t.status==='completed'){
+    closeDeliveryConfirm();toast('هذا المشوار تم توصيله واحتساب العمولة سابقًا؛ لم يتم أي خصم جديد.');return;
+  }
+  const c=captain(t.captainId);
+  if(!c){toast('لا يوجد كابتن معيّن لهذا المشوار');return;}
+  const btn=$('deliveryConfirm').querySelector('.btn.green');
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='جارٍ التحقق والحفظ...';
+  const oldStatus=t.status,oldBalance=Number(c.balance)||0,oldCompletedAt=t.completedAt;
+  let deduction=null, balanceChanged=false;
+  try{
+    if(!remoteReady || !supabaseClient) throw new Error('التطبيق غير متصل بقاعدة البيانات؛ أعد تسجيل الدخول ثم حاول مجددًا.');
+    // تحقق من قاعدة البيانات أولًا حتى لا يتكرر الخصم عند إعادة الضغط أو فتح التطبيق.
+    const {data:remoteTrip,error:tripCheckError}=await supabaseClient.from('trips').select('status').eq('id',t.id).maybeSingle();
+    if(tripCheckError) throw tripCheckError;
+    const {data:existingEvents,error:eventCheckError}=await supabaseClient.from('trip_events').select('id,details,created_at').eq('trip_id',t.id).eq('event_type','commission_deducted').limit(1);
+    if(eventCheckError) throw eventCheckError;
+    if(['completed','delivered'].includes(String(remoteTrip?.status||'').toLowerCase()) || (existingEvents||[]).length>0){
+      t.status='completed';t.completedAt=t.completedAt||remoteTrip?.updated_at||new Date().toISOString();
+      localStorage.setItem(KEY,JSON.stringify(data));render();closeDeliveryConfirm();
+      toast('تمت معالجة هذا المشوار سابقًا؛ لم يتم تكرار خصم العمولة.');return;
+    }
+    const now=new Date().toISOString();
+    deduction={id:uid(),captainId:c.id,tripId:t.id,amount:Number(t.commission)||0,balanceAfter:0,createdAt:now};
+    t.status='completed';t.completedAt=now;
+    c.balance=Math.round((oldBalance-deduction.amount)*100)/100;balanceChanged=true;
+    deduction.balanceAfter=c.balance;
+    data.deductions.unshift(deduction);
+    await syncTrip(t);
+    await syncCaptain(c);
+    const {error:eventError}=await supabaseClient.from('trip_events').insert({trip_id:t.id,actor_id:currentUser?.id||null,event_type:'commission_deducted',details:`amount=${deduction.amount};balance_after=${c.balance}`});
+    if(eventError) throw eventError;
+    localStorage.setItem(KEY,JSON.stringify(data));
+    render();closeDeliveryConfirm();
+    toast('تم تأكيد التوصيل وحفظ خصم العمولة');
+  }catch(err){
+    t.status=oldStatus;t.completedAt=oldCompletedAt;
+    if(balanceChanged)c.balance=oldBalance;
+    if(deduction)data.deductions=data.deductions.filter(d=>d.id!==deduction.id);
+    localStorage.setItem(KEY,JSON.stringify(data));render();
+    alert('لم يتم تأكيد العملية بالكامل. افحص حالة المشوار ورصيد الكابتن في Supabase قبل إعادة المحاولة لتجنب تكرار الخصم. سبب الخطأ: '+(err?.message||'خطأ غير معروف'));
+  }finally{
+    btn.disabled=false;btn.textContent='نعم، تأكيد';
+  }
+}
+function editBalance(id){
+  let c=captain(id),v=prompt('الرصيد الجديد MRU:',c.balance);
+  if(v===null)return;
+  if(v.trim()===''||!Number.isFinite(Number(v))){toast('أدخل رقمًا صحيحًا');return}
+  c.balance=Number(v);
+  save();
+}
+function tripCard(t){
+  let c=captain(t.captainId);
+  return `<div class="item">
+    <div class="row"><h3>${esc(t.customer||'مشوار توصيل')}</h3><b class="money">${money(t.fare)} MRU</b></div>
+    <div class="muted">الكابتن: ${esc(c?.name||'بانتظار قبول كابتن')}<br>
+    من: ${esc(t.pickup)}<br>إلى: ${esc(t.dropoff)}<br>
+    المسافة: ${money(t.km)} كم<br>${stamp(t.completedAt||t.createdAt)}</div>
+    <p>عمولة الشركة: <b>${money(t.commission)} MRU</b></p>
+    ${t.status==='ongoing'?`<button class="btn green small" onclick="completeTrip('${t.id}')">تم التوصيل</button>`:'<span class="status">مكتمل</span>'}
+  </div>`;
+}
+function render(){
+  let done=data.trips.filter(t=>t.status==='completed');
+  let day=done.filter(t=>dateKey(t.completedAt)===today());
+  let month=done.filter(t=>sameMonth(t.completedAt));
+  $('todayTrips').textContent=day.length;
+  $('todayFee').textContent=money(day.reduce((s,t)=>s+t.commission,0));
+  $('todayFare').textContent=money(day.reduce((s,t)=>s+t.fare,0));
+  $('ongoingCount').textContent=data.trips.filter(t=>t.status==='ongoing').length;
+  $('monthTrips').textContent=month.length;
+  $('monthFare').textContent=money(month.reduce((s,t)=>s+t.fare,0));
+  $('monthFee').textContent=money(month.reduce((s,t)=>s+t.commission,0))+' MRU';
+  $('recent').innerHTML=data.trips.slice(0,3).map(tripCard).join('')||'<div class="panel muted">لا توجد مشاوير.</div>';
+  $('tripList').innerHTML=data.trips.filter(t=>t.status===tripFilter).map(tripCard).join('')||'<div class="panel muted">لا توجد مشاوير هنا.</div>';
+  $('captainList').innerHTML=data.captains.map(c=>`
+    <div class="item">
+      <div class="row"><h3>${esc(c.name)}</h3>
+      <span class="status ${active(c)?'':'stopped'}">${active(c)?'نشط':'موقوف'}</span></div>
+      <div class="muted">الهاتف: ${esc(c.phone)}<br>رقم الدراجة: ${esc(c.plate)}</div>
+      <p>الرصيد: <b class="money">${money(c.balance)} MRU</b></p>
+      <button class="btn light small" onclick="editBalance('${c.id}')">تعديل الرصيد</button>
+    </div>`).join('')||'<div class="panel muted">لا يوجد كباتن.</div>';
+  let ds=data.deductions.filter(d=>dateKey(d.createdAt)===today());
+  $('reportToday').textContent=money(ds.reduce((s,d)=>s+d.amount,0));
+  $('reportAll').textContent=money(data.deductions.reduce((s,d)=>s+d.amount,0));
+  const completedForReport=[...data.trips].filter(t=>t.status==='completed').sort((a,b)=>new Date(b.completedAt||b.createdAt||0)-new Date(a.completedAt||a.createdAt||0));
+  $('completedTripsReport').innerHTML=completedForReport.map(tripCard).join('')||'<div class="panel muted">لا توجد مشاوير مكتملة حتى الآن.</div>';
+  $('deductions').innerHTML=data.deductions.slice(0,30).map(d=>`
+    <div class="item row"><div><b>${esc(captain(d.captainId)?.name||'كابتن')}</b>
+    <div class="muted">${stamp(d.createdAt)}<br>الرصيد بعد الخصم: ${money(d.balanceAfter)} MRU</div></div>
+    <b class="money">− ${money(d.amount)} MRU</b></div>`).join('')||'<div class="panel muted">لا توجد عمليات خصم.</div>';
+}
+/* حساب المسار الفعلي باستخدام خدمات الخرائط، ويتطلب الإنترنت */
+function initMap(){
+  if(!window.L){$('routeStatus').textContent='تعذر تحميل الخريطة. تحقق من الإنترنت.';return}
+  if(!map){
+    map=L.map('map').setView([18.0735,-15.9582],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,attribution:'© OpenStreetMap'
+    }).addTo(map);
+    map.on('click',mapPick);
+  }
+  setTimeout(()=>map.invalidateSize(),150);
+}
+function clearRoute(){
+  if(!map)return;
+  if(m1){map.removeLayer(m1);m1=null}
+  if(m2){map.removeLayer(m2);m2=null}
+  if(routeLine){map.removeLayer(routeLine);routeLine=null}
+}
+async function geocode(q){
+  let url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q+', Nouakchott, Mauritania');
+  let r=await fetch(url,{headers:{'Accept-Language':'ar,fr,en'}});
+  if(!r.ok)throw Error('تعذر البحث عن العنوان');
+  let a=await r.json();
+  if(!a.length)throw Error('لم يتم العثور على العنوان: '+q);
+  return{lat:Number(a[0].lat),lng:Number(a[0].lon),label:a[0].display_name};
+}
+async function calculateRoute(){
+  let from=$('pickupText').value.trim(),to=$('dropText').value.trim();
+  if(!from||!to){toast('اكتب عنوان الانطلاق والوجهة');return}
+  initMap();
+  let b=$('routeButton');
+  b.disabled=true;
+  b.textContent='جارٍ حساب المسار...';
+  $('routeStatus').textContent='يتم البحث عن العناوين وحساب طريق القيادة...';
+  try{
+    let a=await geocode(from);
+    await new Promise(r=>setTimeout(r,1100));
+    let z=await geocode(to);
+    pickup={lat:a.lat,lng:a.lng};
+    dropoff={lat:z.lat,lng:z.lng};
+    await getRoadRoute();
+    $('routeStatus').textContent='تم تحديد الطريق على الخريطة. المسافة محسوبة حسب شبكة الطرق.';
+  }catch(e){
+    $('routeStatus').textContent=e.message+' — يمكنك تحديد النقطتين بالنقر على الخريطة.';
+    toast(e.message);
+  }finally{
+    b.disabled=false;
+    b.textContent='📍 احسب المسار والسعر واعرضه على الخريطة';
+  }
+}
+async function getRoadRoute(){
+  let url=`https://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}?overview=full&geometries=geojson`;
+  let r=await fetch(url);
+  if(!r.ok)throw Error('تعذر الحصول على مسار الطرق');
+  let d=await r.json();
+  if(d.code!=='Ok'||!d.routes?.length)throw Error('لا يوجد مسار قيادة بين العنوانين');
+  routeKm=Math.round((d.routes[0].distance/1000)*10)/10;
+  clearRoute();
+  m1=L.marker([pickup.lat,pickup.lng]).addTo(map).bindPopup('الانطلاق').openPopup();
+  m2=L.marker([dropoff.lat,dropoff.lng]).addTo(map).bindPopup('الوجهة');
+  routeLine=L.geoJSON(d.routes[0].geometry,{
+    style:{color:'#f97316',weight:6,opacity:.9}
+  }).addTo(map);
+  map.fitBounds(routeLine.getBounds(),{padding:[25,25]});
+  $('kmPreview').textContent=money(routeKm);
+  $('farePreview').textContent=money(price(routeKm));
+  $('feePreview').textContent=money(fee(price(routeKm)))+' MRU';
+}
+function enableMapPick(){
+  initMap();
+  pickStep=0;
+  toast('انقر على الخريطة لتحديد الانطلاق ثم الوجهة');
+}
+function mapPick(e){
+  if(!$('tripModal').classList.contains('show'))return;
+  let p={lat:e.latlng.lat,lng:e.latlng.lng};
+  if(pickStep===0){
+    pickup=p;
+    pickStep=1;
+    if(m1)map.removeLayer(m1);
+    m1=L.marker(e.latlng).addTo(map).bindPopup('الانطلاق').openPopup();
+    $('pickupText').value=`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+    $('routeStatus').textContent='تم تحديد الانطلاق. انقر على الوجهة.';
+  }else{
+    dropoff=p;
+    pickStep=0;
+    if(m2)map.removeLayer(m2);
+    m2=L.marker(e.latlng).addTo(map).bindPopup('الوجهة').openPopup();
+    $('dropText').value=`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+    getRoadRoute().then(()=>$('routeStatus').textContent='تم رسم مسار القيادة وحساب السعر.').catch(e=>toast(e.message));
+  }
+}
+function backup(){
+  let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download='hun-backup.json';a.click();
+  URL.revokeObjectURL(u);
+}
+function restore(e){
+  let f=e.target.files[0];
+  if(!f)return;
+  let r=new FileReader();
+  r.onload=()=>{
+    try{
+      let d=JSON.parse(r.result);
+      if(!Array.isArray(d.captains)||!Array.isArray(d.trips)||!Array.isArray(d.deductions))throw Error();
+      if(confirm('استبدال البيانات الحالية؟')){
+        data=d;save();toast('تم الاستيراد');
+      }
+    }catch(x){toast('ملف غير صالح')}
+    e.target.value='';
+  };
+  r.readAsText(f);
+}
+function clearAll(){
+  if(confirm('حذف جميع الكباتن والمشاوير والتقارير؟')&&confirm('تأكيد أخير؟')){
+    data={captains:[],trips:[],deductions:[]};
+    save();
+    toast('تم مسح البيانات');
+  }
+}
+render();
+// لأسباب الخصوصية: لا نفتح التطبيق تلقائياً اعتماداً على جلسة قديمة.
+// عند كل فتح للملف نظهر بوابة الدخول ونطلب البريد وكلمة المرور.
+(async function requireLoginOnEveryOpen(){
+  try { await supabaseClient.auth.signOut(); } catch(e) {}
+  currentUser = null;
+  currentProfile = null;
+  remoteReady = false;
+  $('loginGate').style.display = 'flex';
+  $('loginError').textContent = '';
+})();
+</script>
+</body>
+</html>
