@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ليالي شنقيط - وجبات تقليدية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #5c3a21; 
+            --primary-dark: #3d2413;
+            --accent: #d4a359; 
+            --accent-hover: #b8863b;
+            --success: #27ae60;
+            --danger: #c0392b; 
+            --info: #2980b9; 
+            --warning: #d35400; 
+            --purple: #8e44ad; 
+            --bg-body: #f4efe9;
+            --card-bg: #ffffff;
+            --dark: #2c221e; 
+            --shadow: 0 4px 15px rgba(92, 58, 33, 0.08);
+        }
+        
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: var(--bg-body); margin: 0; padding: 20px; 
+            color: var(--dark);
+        }
+
+        /* الهيدر الرئيسي */
+        .main-header { 
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary)); 
+            color: white; padding: 25px 30px; border-radius: 20px; 
+            box-shadow: var(--shadow); margin-bottom: 25px; 
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+            border-bottom: 4px solid var(--accent);
+        }
+        .header-title h1 { 
+            margin: 0; font-size: 2.8rem; font-weight: 900; 
+            color: var(--accent); text-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+        }
+        .header-title p { 
+            margin: 5px 0 0; font-size: 1.1rem; color: #e6d7c3; font-weight: 500; 
+        }
+        .clock-badge {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            display: inline-block;
+            margin-top: 6px;
+            direction: ltr;
+            color: #f1f1f1;
+        }
+
+        /* كروت الإحصائيات */
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { 
+            background: var(--card-bg); padding: 18px 20px; border-radius: 14px; 
+            box-shadow: var(--shadow); border-right: 5px solid var(--primary); transition: 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card h4 { margin: 0; color: #7f6c5f; font-size: 0.9rem; }
+        .stat-card p { margin: 8px 0 0; font-size: 1.6rem; font-weight: bold; color: var(--primary); }
+
+        /* الأزرار */
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        button { 
+            cursor: pointer; border: none; padding: 10px 16px; 
+            border-radius: 8px; font-family: inherit; font-weight: bold; font-size: 0.9rem; transition: 0.2s; 
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        button:active { transform: scale(0.97); }
+        .btn-add { background: var(--success); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-accent { background: var(--accent); color: var(--primary-dark); }
+        .btn-accent:hover { background: var(--accent-hover); }
+
+        /* عناوين الأقسام */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); padding: 12px 20px; border-radius: 12px; 
+            margin: 25px 0 15px; border-right: 5px solid var(--accent); box-shadow: var(--shadow);
+        }
+        .section-header h3 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+
+        /* شبكة الكروت (الخيام والطلبات الخارجية) */
+        .grid-tents { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); 
+            gap: 15px; 
+        }
+        .grid-external {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+            gap: 15px;
+        }
+
+        .card { 
+            background: var(--card-bg); border-radius: 14px; padding: 15px; 
+            box-shadow: var(--shadow); position: relative; border: 1px solid #e8dec8;
+            display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s;
+        }
+        .card.active { border: 2px solid var(--accent); background: #fdfaf3; }
+        .card-header-tent { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .card b { font-size: 1.1rem; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .badge-free { background: #e8f8f0; color: var(--success); }
+        .badge-busy { background: #fde8e8; color: var(--danger); }
+        
+        /* المودال - نافذة منبثقة */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+
+        /* الجداول */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; border-radius: 8px; overflow: hidden; font-size: 0.95rem; }
+        th { background: var(--primary); color: white; padding: 10px; font-weight: 500; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+        tr:nth-child(even) { background-color: #fdfbf7; }
+
+        /* نتائج القائمة المنسدلة للبحث */
+        #suggestionBox {
+            max-height: 180px; overflow-y: auto; background: white;
+            border-radius: 0 0 10px 10px; box-shadow: var(--shadow); border: 1px solid #ddd; border-top: none;
+        }
+        .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f1f1f1; display: flex; justify-content: space-between; }
+        .suggestion-item:hover { background: #fdf8ef; color: var(--primary); }
+
+        /* إعدادات الطباعة للفواتير والإيصالات */
+        #printableReceipt { display: none; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #printableReceipt, #printableReceipt * { visibility: visible; }
+            #printableReceipt { 
+                display: block !important; 
+                position: absolute; 
+                left: 0; top: 0; width: 100%; 
+                font-family: 'Tajawal', sans-serif;
+                color: #000;
+                padding: 10px;
+            }
+            .receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+            .receipt-header h2 { margin: 0; font-size: 1.6rem; }
+            .receipt-header p { margin: 3px 0; font-size: 0.9rem; }
+            .receipt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+            .receipt-table th, .receipt-table td { border-bottom: 1px solid #ddd; padding: 5px; text-align: right; font-size: 0.85rem; }
+            .receipt-total { border-top: 1px dashed #000; padding-top: 8px; text-align: space-between; font-weight: bold; font-size: 1.1rem; }
+            .receipt-footer { text-align: center; margin-top: 15px; font-size: 0.8rem; border-top: 1px dashed #000; padding-top: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="header-title">
+            <h1>ليالي شنقيط</h1>
+            <p>وجبات تقليدية 31289292</p>
+            <div class="clock-badge" id="live-clock"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-info" onclick="openMenuManager()">🍴 المنيو</button>
+            <button class="btn-purple" onclick="openInventoryManager()">📦 المخزون</button>
+            <button class="btn-warning" onclick="openExternalOrderModal()">🚚 طلب خارجي</button>
+            <button class="btn-accent" onclick="showGeneralReport()">📊 التقارير</button>
+            <button class="btn-danger" style="background:#7f8c8d" onclick="clearAllData()">🗑️ مسح</button>
+        </div>
+    </div>
+
+    <div class="dashboard-stats" id="stats-bar"></div>
+
+    <div class="section-header">
+        <h3>🏕️ الخيام (30 خيمة)</h3>
+    </div>
+    <div class="grid-tents" id="tents-grid"></div>
+
+    <div class="section-header">
+        <h3>📦 الطلبات الخارجية النشطة</h3>
+    </div>
+    <div class="grid-external" id="external-grid"></div>
+
+    <!-- نافذة إضافة طلب -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <h3 id="targetObjName">إضافة طلب</h3>
+            <div style="position:relative; margin-top:15px;">
+                <input type="text" id="searchProd" onkeyup="searchMenu(this.value)" placeholder="ابحث عن وجبة..." style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px; font-size:1rem; box-sizing: border-box;">
+                <div id="suggestionBox" style="position:absolute; width:100%; z-index:100; display:none;"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <div style="flex:1">
+                    <label>السعر:</label>
+                    <input type="number" id="prodPrice" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;">
+                </div>
+                <div style="flex:1">
+                    <label>الكمية المطلوبة:</label>
+                    <input type="number" id="prodQty" value="1" min="1" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;">
+                </div>
+            </div>
+            <button class="btn-add" style="width:100%; margin-top:20px; padding:12px;" onclick="confirmOrder()">✅ إضافة للطلب</button>
+            <button onclick="closeModals()" style="width:100%; margin-top:10px; background:none; color:#777;">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- نافذة العرض والتقارير العامة -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div id="reportContent"></div>
+            <div class="btn-group" style="margin-top:20px; justify-content: flex-end;">
+                <button class="btn-info" onclick="window.print()">🖨️ طباعة</button>
+                <button class="btn-add" onclick="exportToPdf()">📥 PDF</button>
+                <button class="btn-danger" style="background:#95a5a6" onclick="closeModals()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إنهاء الحساب -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <h3 id="payTargetName">إنهاء الحساب</h3>
+            <div id="paymentSummary" style="background:#f8f9fa; padding:20px; border-radius:12px; margin:15px 0; font-size:1.2rem; text-align:center;"></div>
+            <label>اختر وسيلة الدفع:</label>
+            <select id="paymentMethod" style="width:100%; padding:12px; margin-top:10px; border-radius:8px; font-size:1rem;">
+                <option value="نقداً">💵 كاش (نقداً)</option>
+                <option value="بنكيلي">📱 بنكيلي</option>
+                <option value="مصرفي">🏦 مصرفي</option>
+                <option value="سداد">💳 سداد</option>
+                <option value="BimBank">🏦 BimBank</option>
+                <option value="Click">📲 Click</option>
+            </select>
+            <button class="btn-add" style="width:100%; margin-top:25px; padding:14px;" onclick="processPayment()">✅ تأكيد الدفع وإغلاق الطلب</button>
+            <button onclick="closeModals()" style="width:100%; margin-top:10px; background:none; color:#777;">تراجع</button>
+        </div>
+    </div>
+
+    <!-- قالب الفاتورة المخصص للطباعة المباشرة -->
+    <div id="printableReceipt"></div>
+
+    <script>
+        // تنسيق الأرقام والتاريخ بالفرنسية (0-9)
+        function formatNum(num) {
+            return String(num).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+        }
+
+        function getCurrentDateTimeFormatted() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}/${month}/${day} - ${hours}:${minutes}:${seconds}`;
+        }
+
+        // البيانات الأساسية المخزنة
+        let menu = JSON.parse(localStorage.getItem('kh_menu')) || [
+            { name: "شواء لحم", price: 2500, stock: 50, sold: 0 },
+            { name: "دجاج متبل", price: 1800, stock: 40, sold: 0 }
+        ];
+        let archivedSales = JSON.parse(localStorage.getItem('kh_archive')) || [];
+        let externalOrders = JSON.parse(localStorage.getItem('kh_external')) || [];
+        
+        // ضبط الخيام لـ 30 خيمة
+        let tents = JSON.parse(localStorage.getItem('kh_tents')) || [];
+        if (tents.length !== 30) {
+            tents = Array.from({ length: 30 }, (_, i) => {
+                const existing = tents.find(t => t.id === i + 1);
+                return existing || { id: i + 1, occupied: false, orders: [], total: 0 };
+            });
+        }
+
+        // ساعة حية بأرقام أفرنجية (فرنسية)
+        setInterval(() => {
+            document.getElementById('live-clock').innerText = getCurrentDateTimeFormatted();
+        }, 1000);
+
+        function save() {
+            localStorage.setItem('kh_menu', JSON.stringify(menu));
+            localStorage.setItem('kh_archive', JSON.stringify(archivedSales));
+            localStorage.setItem('kh_external', JSON.stringify(externalOrders));
+            localStorage.setItem('kh_tents', JSON.stringify(tents));
+            renderAll();
+        }
+
+        function renderAll() {
+            // عرض الخيام الـ 30
+            const tGrid = document.getElementById('tents-grid');
+            tGrid.innerHTML = tents.map(t => `
+                <div class="card ${t.occupied ? 'active' : ''}">
+                    <div>
+                        <div class="card-header-tent">
+                            <b>⛺ خيمة ${formatNum(t.id)}</b>
+                            <span class="badge ${t.occupied ? 'badge-busy' : 'badge-free'}">${t.occupied ? 'مشغولة' : 'متاحة'}</span>
+                        </div>
+                        <p style="margin:5px 0; font-size:0.9rem; color:#555">المجموع: <b style="color:var(--primary); font-size:1.1rem">${formatNum(t.total)}</b> <small>أوقية</small></p>
+                    </div>
+                    <div class="btn-group" style="margin-top:10px;">
+                        ${!t.occupied ? 
+                        `<button class="btn-info" style="width:100%; padding:6px;" onclick="startTent(${t.id})">فتح الخيمة</button>` : 
+                        `<button class="btn-add" style="flex:1; padding:6px;" onclick="openOrderModal(${t.id}, 'tent')">➕ طلب</button>
+                         <button class="btn-warning" style="padding:6px;" onclick="showHistory(${t.id}, 'tent')">📝</button>
+                         <button class="btn-accent" style="padding:6px;" title="طباعة الفاتورة وإنهاء الحساب" onclick="printAndCheckoutTent(${t.id})">🖨️ طباعة</button>
+                         <button class="btn-danger" style="width:100%; padding:6px; background:var(--primary)" onclick="openPaymentModal(${t.id}, 'tent')">💰 الحساب</button>`}
+                    </div>
+                </div>
+            `).join('');
+
+            // عرض الطلبات الخارجية
+            const eGrid = document.getElementById('external-grid');
+            eGrid.innerHTML = externalOrders.length === 0 ? 
+                '<p style="color:#888; grid-column:1/-1;">لا يوجد طلبات خارجية حالياً.</p>' :
+                externalOrders.map((o, idx) => `
+                <div class="card active" style="border-right:5px solid var(--warning)">
+                    <div>
+                        <b>📦 خارجي: ${o.customer}</b>
+                        <p style="margin:5px 0;">المبلغ: <b>${formatNum(o.total)}</b> أوقية</p>
+                    </div>
+                    <div class="btn-group" style="margin-top:10px;">
+                        <button class="btn-add" style="flex:1" onclick="openOrderModal(${idx}, 'external')">➕ طلب</button>
+                        <button class="btn-warning" onclick="showHistory(${idx}, 'external')">📝 تفاصيل</button>
+                        <button class="btn-add" style="background:var(--accent); color:var(--primary-dark)" onclick="openPaymentModal(${idx}, 'external')">💰 دفع</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const currentTotal = tents.reduce((s,t)=>s+t.total,0) + externalOrders.reduce((s,o)=>s+o.total,0);
+            const archiveTotal = archivedSales.reduce((s,a)=>s+a.total,0);
+            const activeTentsCount = tents.filter(t=>t.occupied).length;
+
+            document.getElementById('stats-bar').innerHTML = `
+                <div class="stat-card"><h4>الخيام المشغولة</h4><p>${formatNum(activeTentsCount)} / 30</p></div>
+                <div class="stat-card"><h4>مبالغ قيد التحصيل</h4><p>${formatNum(currentTotal)} <small style="font-size:0.9rem">أوقية</small></p></div>
+                <div class="stat-card" style="border-right-color:var(--accent)"><h4>إجمالي المبيعات المؤرشفة</h4><p>${formatNum(archiveTotal)} <small style="font-size:0.9rem">أوقية</small></p></div>
+            `;
+        }
+
+        // --- إدارة المنيو والمخزون ---
+        function openMenuManager() {
+            let h = `<h3>🗄️ إدارة قائمة الوجبات (المنيو)</h3>
+            <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+                <input id="mN" placeholder="اسم الوجبة" style="flex:2; min-width:140px; padding:8px; border-radius:6px; border:1px solid #ddd;"> 
+                <input id="mP" type="number" placeholder="السعر" style="flex:1; min-width:80px; padding:8px; border-radius:6px; border:1px solid #ddd;"> 
+                <input id="mS" type="number" placeholder="المخزون الأولي" style="flex:1; min-width:90px; padding:8px; border-radius:6px; border:1px solid #ddd;"> 
+                <button class="btn-add" onclick="addM()">إضافة</button>
+            </div>
+            <div id="mL"></div>`;
+            document.getElementById('reportContent').innerHTML = h;
+            updateML();
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function addM() { 
+            const n = document.getElementById('mN').value.trim(); 
+            const p = parseFloat(document.getElementById('mP').value);
+            const s = parseInt(document.getElementById('mS').value) || 0;
+            if(n && !isNaN(p)){ 
+                menu.push({ name: n, price: p, stock: s, sold: 0 }); 
+                save(); updateML();
+                document.getElementById('mN').value = ''; document.getElementById('mP').value = ''; document.getElementById('mS').value = '';
+            }
+        }
+
+        function updateML() { 
+            document.getElementById('mL').innerHTML = `<table>
+                <tr><th>الوجبة</th><th>السعر</th><th>المخزون الحالي</th><th>إجراء</th></tr>
+                ${menu.map((m,i)=>`
+                    <tr>
+                        <td>${m.name}</td>
+                        <td>${formatNum(m.price)}</td>
+                        <td>${formatNum(m.stock)}</td>
+                        <td><button class="btn-danger" style="padding:3px 8px" onclick="menu.splice(${i},1); save(); updateML()">حذف</button></td>
+                    </tr>
+                `).join('')}
+            </table>`; 
+        }
+
+        // --- إدارة المخزون والمتبقي والمباع ---
+        function openInventoryManager() {
+            let h = `<h3>📦 تقرير إدارة المخزون</h3>
+            <p style="font-size:0.9rem; color:#666;">يمكنك متابعة الكميات المتبقية وتعديل مخزون الأصناف مباشرة.</p>
+            <table>
+                <tr>
+                    <th>الصنف</th>
+                    <th>السعر</th>
+                    <th>المباع</th>
+                    <th>المتبقي بالرصيد</th>
+                    <th>إضافة كمية</th>
+                </tr>`;
+            
+            menu.forEach((m, idx) => {
+                const stockColor = m.stock <= 5 ? 'color:red; font-weight:bold;' : 'color:green;';
+                h += `<tr>
+                    <td><b>${m.name}</b></td>
+                    <td>${formatNum(m.price)}</td>
+                    <td><b style="color:var(--purple)">${formatNum(m.sold || 0)}</b></td>
+                    <td style="${stockColor}">${formatNum(m.stock)}</td>
+                    <td>
+                        <input type="number" id="addStock_${idx}" placeholder="+ كمية" style="width:70px; padding:4px; text-align:center; border:1px solid #ccc; border-radius:4px;">
+                        <button class="btn-add" style="padding:4px 8px; font-size:0.8rem;" onclick="addStock(${idx})">حفظ</button>
+                    </td>
+                </tr>`;
+            });
+            h += `</table>`;
+            document.getElementById('reportContent').innerHTML = h;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function addStock(idx) {
+            const val = parseInt(document.getElementById(`addStock_${idx}`).value);
+            if(val && !isNaN(val)) {
+                menu[idx].stock += val;
+                save();
+                openInventoryManager();
+            }
+        }
+
+        // --- إجراءات الطلبات ---
+        function searchMenu(v) {
+            const box = document.getElementById('suggestionBox');
+            const matches = menu.filter(m => m.name.includes(v));
+            if(v && matches.length) {
+                box.style.display = 'block';
+                box.innerHTML = matches.map(m => `
+                    <div class="suggestion-item" onclick="setProd('${m.name}', ${m.price}, ${m.stock})">
+                        <span>${m.name} (المتوفر: ${formatNum(m.stock)})</span>
+                        <b>${formatNum(m.price)} أوقية</b>
+                    </div>
+                `).join('');
+            } else box.style.display = 'none';
+        }
+
+        function setProd(n, p, s) { 
+            document.getElementById('searchProd').value = n; 
+            document.getElementById('prodPrice').value = p; 
+            document.getElementById('suggestionBox').style.display = 'none'; 
+        }
+
+        function confirmOrder() {
+            const name = document.getElementById('searchProd').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const qty = parseInt(document.getElementById('prodQty').value);
+
+            if(!name || isNaN(price) || isNaN(qty) || qty <= 0) return;
+
+            // التحقق من المخزون
+            const menuItem = menu.find(m => m.name === name);
+            if(menuItem && menuItem.stock < qty) {
+                alert(`⚠️ الكمية المطلوبة غير متوفرة في المخزون! المتبقي حالياً: ${formatNum(menuItem.stock)}`);
+                return;
+            }
+
+            const item = { name, price, qty, lineTotal: price * qty };
+            if(window.activeType === 'tent') {
+                const t = tents.find(t=>t.id === window.activeId);
+                t.orders.push(item); t.total += item.lineTotal;
+            } else {
+                const e = externalOrders[window.activeId];
+                e.orders.push(item); e.total += item.lineTotal;
+            }
+
+            // اقتطاع المخزون
+            if(menuItem) {
+                menuItem.stock -= qty;
+                menuItem.sold = (menuItem.sold || 0) + qty;
+            }
+
+            save(); 
+            document.getElementById('searchProd').value = '';
+            document.getElementById('searchProd').focus();
+            closeModals();
+        }
+
+        function startTent(id) { 
+            tents.find(t=>t.id===id).occupied = true; 
+            save(); 
+        }
+
+        function openOrderModal(id, type) { 
+            window.activeId = id; window.activeType = type; 
+            document.getElementById('targetObjName').innerText = "طلب جديد: " + (type === 'tent' ? "خيمة "+formatNum(id) : "طلب خارجي"); 
+            document.getElementById('orderModal').style.display = 'flex'; 
+        }
+
+        function openPaymentModal(id, type) {
+            window.payId = id; window.payType = type;
+            const target = type === 'tent' ? tents.find(t=>t.id===id) : externalOrders[id];
+            document.getElementById('payTargetName').innerText = "تصفية حساب: " + (type === 'tent' ? "خيمة "+formatNum(id) : target.customer);
+            document.getElementById('paymentSummary').innerHTML = `المبلغ الإجمالي المستحق:<br><b style="font-size:2rem; color:var(--accent)">${formatNum(target.total)} <small>أوقية</small></b>`;
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function processPayment() {
+            const method = document.getElementById('paymentMethod').value;
+            let final;
+            if(window.payType === 'tent') {
+                const t = tents.find(t=>t.id === window.payId);
+                final = { source: "خيمة "+formatNum(t.id), details: [...t.orders], total: t.total, method, date: getCurrentDateTimeFormatted() };
+                t.occupied = false; t.orders = []; t.total = 0;
+            } else {
+                const e = externalOrders[window.payId];
+                final = { source: "خارجي - "+e.customer, details: [...e.orders], total: e.total, method, date: getCurrentDateTimeFormatted() };
+                externalOrders.splice(window.payId, 1);
+            }
+            archivedSales.push(final); 
+            save(); 
+            closeModals();
+        }
+
+        // --- الطباعة المباشرة للخيمة وتوثيق المعاملات ---
+        function printAndCheckoutTent(id) {
+            const t = tents.find(tent => tent.id === id);
+            if (!t || t.orders.length === 0) {
+                alert("⚠️ الخيمة فارغة ولا تحتوي على طلبات للطباعة!");
+                return;
+            }
+
+            const now = getCurrentDateTimeFormatted();
+
+            // إنشاء المحتوى المخصص للطباعة
+            let receiptHTML = `
+                <div class="receipt-header">
+                    <h2>ليالي شنقيط</h2>
+                    <p>وجبات تقليدية</p>
+                    <p>هاتف: 31289292</p>
+                    <p>الموقع / الخيمة: <b>خيمة رقم ${formatNum(t.id)}</b></p>
+                    <p>التاريخ والوقت: ${now}</p>
+                </div>
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>الصنف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>المجموع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            t.orders.forEach(item => {
+                receiptHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${formatNum(item.qty)}</td>
+                        <td>${formatNum(item.price)}</td>
+                        <td>${formatNum(item.lineTotal)}</td>
+                    </tr>
+                `;
+            });
+
+            receiptHTML += `
+                    </tbody>
+                </table>
+                <div class="receipt-total">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>الإجمالي الكلي:</span>
+                        <span><b>${formatNum(t.total)} أوقية</b></span>
+                    </div>
+                </div>
+                <div class="receipt-footer">
+                    <p>شكراً لزيارتكم ليالي شنقيط!</p>
+                    <p>أهلاً وسهلاً بكم</p>
+                </div>
+            `;
+
+            document.getElementById('printableReceipt').innerHTML = receiptHTML;
+
+            // حفظ المعاملة تلقائياً في الأرشيف وتسجيل المعلمات
+            const finalRecord = { 
+                source: "خيمة " + formatNum(t.id), 
+                details: [...t.orders], 
+                total: t.total, 
+                method: "طباعة مباشرة (نقداً/عام)", 
+                date: now 
+            };
+            archivedSales.push(finalRecord);
+
+            // تفريغ الخيمة
+            t.occupied = false; 
+            t.orders = []; 
+            t.total = 0;
+            save();
+
+            // إطلاق أمر الطباعة المباشر للمطبعة الكبيرة والصغيرة
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function showHistory(id, type) {
+            let data, title;
+            if(type === 'tent') {
+                data = tents.find(t=>t.id === id).orders;
+                title = "تفاصيل طلبات خيمة " + formatNum(id);
+            } else {
+                data = externalOrders[id].orders;
+                title = "تفاصيل طلب: " + externalOrders[id].customer;
+            }
+
+            let html = `<h3>${title}</h3><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>حذف</th></tr>`;
+            data.forEach((item, idx) => {
+                html += `<tr>
+                    <td>${item.name}</td>
+                    <td>${formatNum(item.qty)}</td>
+                    <td>${formatNum(item.lineTotal)}</td>
+                    <td><button class="btn-danger" style="padding:2px 8px" onclick="deleteItem(${id},'${type}',${idx})">X</button></td>
+                </tr>`;
+            });
+            html += `</table>`;
+            document.getElementById('reportContent').innerHTML = html;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function deleteItem(id, type, idx) {
+            let item;
+            if(type === 'tent') {
+                const t = tents.find(t=>t.id === id);
+                item = t.orders[idx];
+                t.total -= item.lineTotal;
+                t.orders.splice(idx, 1);
+            } else {
+                const e = externalOrders[id];
+                item = e.orders[idx];
+                e.total -= item.lineTotal;
+                e.orders.splice(idx, 1);
+            }
+
+            // إرجاع الكمية إلى المخزون
+            const menuItem = menu.find(m => m.name === item.name);
+            if(menuItem) {
+                menuItem.stock += item.qty;
+                menuItem.sold = Math.max(0, (menuItem.sold || 0) - item.qty);
+            }
+
+            save(); 
+            closeModals();
+        }
+
+        // --- التقارير المباشرة ---
+        function showGeneralReport() {
+            let html = `<h2>📊 تقارير المبيعات والأرشيف</h2>`;
+            html += `<h4>سجل المبيعات المؤرشفة</h4>`;
+            html += `<table><tr><th>المصدر</th><th>المبلغ الإجمالي</th><th>طريقة الدفع</th><th>التاريخ والوقت</th></tr>`;
+            archivedSales.forEach((s) => {
+                html += `<tr><td>${s.source}</td><td><b>${formatNum(s.total)}</b></td><td>${s.method}</td><td>${s.date}</td></tr>`;
+            });
+            html += `</table>`;
+            
+            const inventoryStats = {};
+            archivedSales.forEach(s => s.details.forEach(i => { 
+                inventoryStats[i.name] = (inventoryStats[i.name] || 0) + i.qty; 
+            }));
+            
+            html += `<h3>📈 ملخص إجمالي المبيعات للأصناف</h3><table><tr><th>الوجبة / الصنف</th><th>إجمالي الكمية المباعة</th></tr>`;
+            for(let p in inventoryStats) {
+                html += `<tr><td>${p}</td><td><b>${formatNum(inventoryStats[p])}</b></td></tr>`;
+            }
+            html += `</table>`;
+
+            document.getElementById('reportContent').innerHTML = html;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function openExternalOrderModal() {
+            const name = prompt("ادخل اسم العميل أو رقم الهاتف للطلب الخارجي:");
+            if(name && name.trim() !== "") {
+                externalOrders.push({ customer: name.trim(), orders: [], total: 0, date: getCurrentDateTimeFormatted() });
+                save();
+                openOrderModal(externalOrders.length - 1, 'external');
+            }
+        }
+
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+        function exportToPdf() { html2pdf().from(document.getElementById('reportContent')).save('تقرير_ليالي_شنقيط.pdf'); }
+        function clearAllData() { 
+            if(confirm("⚠️ هل أنت متأكد من مسح جميع البيانات المخزنة؟ لا يمكن الاسترجاع.")) { 
+                localStorage.clear(); 
+                location.reload(); 
+            } 
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
+```eof
